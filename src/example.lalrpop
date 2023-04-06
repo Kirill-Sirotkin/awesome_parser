@@ -1,0 +1,43 @@
+use std::str::FromStr;
+
+grammar;
+
+pub ProgramExpressionSequence: () = {
+    <ProgramExpressionSequence> ";" ProgramExpression => <>,
+    ProgramExpression,
+}
+
+ProgramExpression: () = {
+    MathExpression => (),
+    FunctionExpression => (),
+}
+
+FunctionExpression: () = {
+    "print" "(" <MathExpression> ")" => println!("{}", <>),
+}
+
+MathExpression: i32 = {
+    <l:MathExpression> "+" <r:MathFactor> => l + r,
+    <l:MathExpression> "-" <r:MathFactor> => l - r,
+    MathFactor,
+};
+
+MathFactor: i32 = {
+    <l:MathFactor> "*" <r:MathExponent> => l * r,
+    <l:MathFactor> "/" <r:MathExponent> => l / r,
+    MathExponent,
+};
+
+MathExponent: i32 = {
+    <l:MathExponent> "^" <r:MathTerm> => f32::powi(l as f32, r) as i32,
+    MathTerm,
+}
+
+MathTerm: i32 = {
+    Num,
+    "(" <MathExpression> ")",
+};
+
+Num: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap(),
+};
