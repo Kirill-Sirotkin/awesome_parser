@@ -4,33 +4,29 @@ use awesome_parser::ast::{Expr, OpCode};
 grammar;
 
 pub Expr: Box<Expr> = {
-    #[precedence(level="4")] #[assoc(side="left")]
-    <lhs: Expr> "+" <rhs: Expr> => Box::new(Expr::Op(lhs, OpCode::Add, rhs)),
-    <lhs: Expr> "-" <rhs: Expr> => Box::new(Expr::Op(lhs, OpCode::Sub, rhs)),
-    #[precedence(level="3")] #[assoc(side="left")]
-    <lhs: Expr> "*" <rhs: Expr> => Box::new(Expr::Op(lhs, OpCode::Mul, rhs)),
-    <lhs: Expr> "/" <rhs: Expr> => Box::new(Expr::Op(lhs, OpCode::Div, rhs)),
-    #[precedence(level="2")] #[assoc(side="left")]
-    <lhs: Expr> "^" <rhs: Expr> => Box::new(Expr::Op(lhs, OpCode::Exp, rhs)),
-    #[precedence(level="1")]
-    MathTerm
+    MathExpr
 }
 
-// MathExpr: Box<Expr> = {
-//     #[precedence(level="3")] #[assoc(side="left")]
-//     <lhs: MathExpr> "+" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Add, rhs)),
-//     <lhs: MathExpr> "-" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Sub, rhs)),
-//     #[precedence(level="2")] #[assoc(side="left")]
-//     <lhs: MathExpr> "*" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Mul, rhs)),
-//     <lhs: MathExpr> "/" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Div, rhs)),
-//     #[precedence(level="1")]
-//     <lhs: MathExpr> "^" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Exp, rhs)),
-//     Num => Box::new(Expr::Number(<>)),
+// FunctionExpr: Box<Expr> = {
+
 // }
+
+MathExpr: Box<Expr> = {
+    #[precedence(level="4")] #[assoc(side="left")]
+    <lhs: MathExpr> "+" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Add, rhs)),
+    <lhs: MathExpr> "-" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Sub, rhs)),
+    #[precedence(level="3")] #[assoc(side="left")]
+    <lhs: MathExpr> "*" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Mul, rhs)),
+    <lhs: MathExpr> "/" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Div, rhs)),
+    #[precedence(level="2")] #[assoc(side="left")]
+    <lhs: MathExpr> "^" <rhs: MathExpr> => Box::new(Expr::Op(lhs, OpCode::Exp, rhs)),
+    #[precedence(level="1")]
+    MathTerm,
+}
 
 MathTerm: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
-    "(" <Expr> ")"
+    "(" <MathExpr> ")"
 }
 
 Num: i32 = {
