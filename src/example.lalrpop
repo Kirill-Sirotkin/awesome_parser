@@ -1,42 +1,28 @@
 use std::str::FromStr;
+use awesome_parser::ast::{Expr, OpCode};
 
 grammar;
 
-pub ProgramExpressionSequence: () = {
-    <ProgramExpressionSequence> ";" ProgramExpression => <>,
-    ProgramExpression,
-}
-
-ProgramExpression: () = {
-    MathExpression => (),
-    FunctionExpression => (),
-}
-
-FunctionExpression: () = {
-    "print" "(" <MathExpression> ")" => println!("{}", <>),
-}
-
-MathExpression: i32 = {
-    <l:MathExpression> "+" <r:MathFactor> => l + r,
-    <l:MathExpression> "-" <r:MathFactor> => l - r,
-    MathFactor,
-};
-
-MathFactor: i32 = {
-    <l:MathFactor> "*" <r:MathExponent> => l * r,
-    <l:MathFactor> "/" <r:MathExponent> => l / r,
-    MathExponent,
-};
-
-MathExponent: i32 = {
-    <l:MathExponent> "^" <r:MathTerm> => f32::powi(l as f32, r) as i32,
+pub Expr: Box<Expr> = {
     MathTerm,
+    MathExpr,
 }
 
-MathTerm: i32 = {
-    Num,
-    "(" <MathExpression> ")",
-};
+MathExpr: Box<Expr> = {
+    #[precedence(level="3")] #[assoc(side="left")]
+    <lhs: MathTerm> "+" <rhs: MathTerm> => Box::new(Expr::Op(lhs, OpCode::Add, rhs)),
+    <lhs: MathTerm> "-" <rhs: MathTerm> => Box::new(Expr::Op(lhs, OpCode::Sub, rhs)),
+    #[precedence(level="2")] #[assoc(side="left")]
+    <lhs: MathTerm> "*" <rhs: MathTerm> => Box::new(Expr::Op(lhs, OpCode::Mul, rhs)),
+    <lhs: MathTerm> "/" <rhs: MathTerm> => Box::new(Expr::Op(lhs, OpCode::Div, rhs)),
+    #[precedence(level="1")]
+    <lhs: MathTerm> "^" <rhs: MathTerm> => Box::new(Expr::Op(lhs, OpCode::Exp, rhs)),
+}
+
+MathTerm: Box<Expr> = {
+    Num => Box::new(Expr::Number(<>)),
+    "(" <MathExpr> ")"
+}
 
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap(),
