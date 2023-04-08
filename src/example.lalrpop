@@ -1,15 +1,18 @@
 use std::str::FromStr;
-use awesome_parser::ast::{Expr, OpCode};
+use awesome_parser::ast::{Expr, OpCode, FunCode, Statement};
 
 grammar;
 
-pub Expr: Box<Expr> = {
-    MathExpr
+pub Stm: Box<Statement> = {
+    #[precedence(level="2")] #[assoc(side="left")]
+    <lhs: Stm> ";" <rhs: Stm> => Box::new(Statement::Seq(lhs, rhs)),
+    #[precedence(level="1")]
+    FunctionExpr,
 }
 
-// FunctionExpr: Box<Expr> = {
-
-// }
+FunctionExpr: Box<Statement> = {
+    "print" "(" <expr: MathExpr> ")" => Box::new(Statement::Fun(FunCode::Print, expr))
+}
 
 MathExpr: Box<Expr> = {
     #[precedence(level="4")] #[assoc(side="left")]
